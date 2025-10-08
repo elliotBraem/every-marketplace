@@ -1,9 +1,9 @@
 import { Feed as FeedGenerator } from "feed";
-import { Feed, FeedItem, FeedAuthor, FeedCategory } from "../schemas/feed";
+import { Feed, FeedItem, FeedAuthor, FeedCategory } from "./schemas/feed";
 
 export function generateRssXml(feedData: Feed, baseUrl: string = "http://localhost:1337"): string {
   const { options, items } = feedData;
-  
+
   const feed = new FeedGenerator({
     title: options.title,
     description: options.description || "",
@@ -76,7 +76,7 @@ export function generateRssXml(feedData: Feed, baseUrl: string = "http://localho
 
 export function generateAtomXml(feedData: Feed, baseUrl: string = "http://localhost:1337"): string {
   const { options, items } = feedData;
-  
+
   const feed = new FeedGenerator({
     title: options.title,
     description: options.description || "",

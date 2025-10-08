@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "every-plugin/zod";
 
 export const FeedAuthor = z.object({
   name: z.string().optional(),
