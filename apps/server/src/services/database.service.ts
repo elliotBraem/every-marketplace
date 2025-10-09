@@ -1,8 +1,7 @@
 import { Effect, Context, Data, Config } from "effect";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { Pool } from "pg";
-import type { NodePgClient } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
+import { createClient } from "@libsql/client";
 
 class DatabaseError extends Data.TaggedError("DatabaseError")<{
   cause: unknown;
@@ -13,25 +12,25 @@ export class DatabaseService extends Effect.Service<DatabaseService>()(
   {
     accessors: true,
     scoped: Effect.gen(function* () {
-      const connectionString = yield* Config.string("DATABASE_URL");
-
-      if (!connectionString) {
-        yield* Effect.fail(
-          new DatabaseError({ cause: "DATABASE_URL not configured" })
-        );
-      }
-
-      const pool = yield* Effect.acquireRelease(
-        Effect.sync(() => new Pool({ connectionString })),
-        (pool) => Effect.promise(() => pool.end())
+      const connectionUrl = yield* Config.string("TURSO_CONNECTION_URL").pipe(
+        Config.orElse(() => Config.succeed("file:./database.db"))
       );
 
-      const client = pool as unknown as NodePgClient;
+      const authToken = yield* Config.option(Config.string("TURSO_AUTH_TOKEN"));
+
+      const client = yield* Effect.acquireRelease(
+        Effect.sync(() => createClient({
+          url: connectionUrl,
+          authToken: authToken._tag === "Some" ? authToken.value : undefined,
+        })),
+        (client) => Effect.sync(() => client.close())
+      );
+
       const db = drizzle(client);
 
       // Test connection
       yield* Effect.tryPromise({
-        try: () => pool.query("SELECT 1"),
+        try: () => client.execute("SELECT 1"),
         catch: (error) => new DatabaseError({ cause: error }),
       });
 
@@ -39,12 +38,12 @@ export class DatabaseService extends Effect.Service<DatabaseService>()(
       yield* Effect.tryPromise({
         try: () =>
           migrate(db, {
-            migrationsFolder: `${process.cwd()}/migrations`,
+            migrationsFolder: "./migrations",
           }),
         catch: (error) => new DatabaseError({ cause: error }),
       });
 
-      return { db, pool };
+      return { db, client };
     }),
     dependencies: [],
   }

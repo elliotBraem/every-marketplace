@@ -6,9 +6,11 @@ import { createAppRouter } from "../../routers/index";
 import { DatabaseService } from "../../services/database.service";
 import { PluginRuntimeService } from "../../services/plugin-runtime.service";
 
+// Use a test database for integration tests
+const TEST_DATABASE_URL = "file:./test-database.db";
+
 describe("Server Integration Tests", () => {
   let redisContainer: StartedTestContainer;
-  let postgresContainer: StartedTestContainer;
   let orpcClient: any;
   let honoApp: any;
 
@@ -18,26 +20,14 @@ describe("Server Integration Tests", () => {
       .withExposedPorts(6379)
       .start();
 
-    // Spin up PostgreSQL container for testing
-    postgresContainer = await new GenericContainer("postgres:16")
-      .withEnvironment({
-        POSTGRES_PASSWORD: "test123",
-        POSTGRES_DB: "testdb"
-      })
-      .withExposedPorts(5432)
-      .start();
-
     const redisHost = redisContainer.getHost();
     const redisPort = redisContainer.getMappedPort(6379);
-    const postgresHost = postgresContainer.getHost();
-    const postgresPort = postgresContainer.getMappedPort(5432);
 
     const redisUrl = `redis://${redisHost}:${redisPort}`;
-    const databaseUrl = `postgresql://postgres:test123@${postgresHost}:${postgresPort}/testdb`;
 
     // Set environment variables FIRST
     process.env.REDIS_URL = redisUrl;
-    process.env.DATABASE_URL = databaseUrl;
+    process.env.TURSO_CONNECTION_URL = TEST_DATABASE_URL;
 
     // Create services layer
     const AppLayer = Layer.mergeAll(
@@ -68,10 +58,7 @@ describe("Server Integration Tests", () => {
   }, 120000);
 
   afterAll(async () => {
-    await Promise.all([
-      redisContainer.stop(),
-      postgresContainer.stop()
-    ]);
+    await redisContainer.stop();
   });
 
   describe("basic endpoints", () => {
