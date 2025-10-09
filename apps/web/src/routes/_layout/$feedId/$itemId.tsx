@@ -7,7 +7,7 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/_layout/$feedId/$itemId")({
   component: ItemPage,
   loader: async ({ context, params }) => {
-    const queryOptions = context.orpc.rss.getFeedItem.queryOptions(params);
+    const queryOptions = context.orpc.rss.getFeedItem.queryOptions({ input: params });
     return context.queryClient.ensureQueryData(queryOptions);
   },
   pendingComponent: () => <div>Loading item...</div>,
@@ -42,7 +42,7 @@ function ItemPage() {
 
   const initialData = Route.useLoaderData();
 
-  const queryOptions = orpc.rss.getFeedItem.queryOptions({ feedId, itemId });
+  const queryOptions = orpc.rss.getFeedItem.queryOptions({ input: { feedId, itemId } });
 
   const { data, error } = useQuery({
     ...queryOptions,

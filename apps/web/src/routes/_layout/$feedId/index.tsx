@@ -4,14 +4,14 @@ import { authClient } from "@/lib/auth-client";
 import { generateFakeFeedItem } from "@/utils/faker-data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { orpc } from "@/utils/orpc";
+import { orpc, client } from "@/utils/orpc";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/_layout/$feedId/")({
   component: FeedPage,
   loader: async ({ context, params }) => {
-    const queryOptions = context.orpc.rss.getFeed.queryOptions(params);
+    const queryOptions = context.orpc.rss.getFeed.queryOptions({ input: params });
     return context.queryClient.ensureQueryData(queryOptions);
   },
   pendingComponent: () => <div>Loading feed...</div>,
@@ -47,7 +47,7 @@ function FeedPage() {
 
   const initialData = Route.useLoaderData();
 
-  const queryOptions = orpc.rss.getFeed.queryOptions({ feedId });
+  const queryOptions = orpc.rss.getFeed.queryOptions({ input: { feedId } });
 
   const { data, error } = useQuery({
     ...queryOptions,
@@ -59,7 +59,7 @@ function FeedPage() {
   const addFeedItemMutation = useMutation({
     mutationFn: async () => {
       const fakeItem = generateFakeFeedItem();
-      await orpc.rss.addFeedItem.mutate({ feedId, item: fakeItem });
+      await client.rss.addFeedItem({ feedId, item: fakeItem });
       return;
     },
     onSuccess: () => {
@@ -73,7 +73,7 @@ function FeedPage() {
 
   const deleteFeedMutation = useMutation({
     mutationFn: async () => {
-      await orpc.rss.deleteFeed.mutate({ feedId });
+      await client.rss.deleteFeed({ feedId });
       return;
     },
     onSuccess: () => {

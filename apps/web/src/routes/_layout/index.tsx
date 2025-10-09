@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { generateFakeFeed } from "@/utils/faker-data";
-import { orpc } from "@/utils/orpc";
+import { orpc, client } from "@/utils/orpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
@@ -57,9 +57,7 @@ function HomeComponent() {
   const addFeedMutation = useMutation({
     mutationFn: async () => {
       const fakeFeed = generateFakeFeed();
-      await orpc.rss.addFeed.mutate({
-        ...fakeFeed
-      });
+      await client.rss.addFeed(fakeFeed);
       return;
     },
     onSuccess: () => {
