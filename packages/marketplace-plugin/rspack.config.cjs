@@ -34,6 +34,9 @@ module.exports = withZephyr({
     },
   },
 })({
+  externals: [
+    /^@libsql\/.*/, // Exclude @libsql platform-specific packages from bundling
+  ],
   entry: "./src/index",
   mode: process.env.NODE_ENV === "development" ? "development" : "production",
   target: "async-node",

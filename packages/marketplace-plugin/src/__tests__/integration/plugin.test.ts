@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import RSSPlugin from "../../index";
 
 const TEST_REGISTRY: PluginRegistry = {
-  "@curatedotfun/rss-plugin": {
+  "@curatedotfun/marketplace-plugin": {
     remoteUrl: "http://localhost:3014/remoteEntry.js",
     version: "1.0.0",
     description: "RSS Plugin for integration testing",
@@ -25,18 +25,18 @@ describe("RSS Plugin Integration Tests", () => {
     {
       registry: TEST_REGISTRY,
     },
-    { "@curatedotfun/rss-plugin": RSSPlugin }
+    { "@curatedotfun/marketplace-plugin": RSSPlugin }
   );
 
   beforeAll(async () => {
-    const { initialized } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+    const { initialized } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
     expect(initialized).toBeDefined();
-    expect(initialized.plugin.id).toBe("@curatedotfun/rss-plugin");
+    expect(initialized.plugin.id).toBe("@curatedotfun/marketplace-plugin");
   });
 
   describe("health check", () => {
     it("should return OK", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const result = await client.healthCheck();
       expect(result).toBe("OK");
@@ -78,14 +78,14 @@ describe("RSS Plugin Integration Tests", () => {
     };
 
     it("should add a feed", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const feedId = await client.addFeed(testFeed);
       expect(feedId).toBe("test-integration-feed");
     });
 
     it("should retrieve a feed", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const feed = await client.getFeed({ feedId: "test-integration-feed" });
       expect(feed).toBeDefined();
@@ -95,7 +95,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should retrieve feed items", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const items = await client.getFeedItems({ feedId: "test-integration-feed" });
       expect(items).toHaveLength(2);
@@ -104,7 +104,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should retrieve a single feed item", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const result = await client.getFeedItem({
         feedId: "test-integration-feed",
@@ -118,7 +118,7 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("feed operations", () => {
     it("should list all feeds", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const feeds = await client.getFeeds();
       expect(Array.isArray(feeds)).toBe(true);
@@ -127,7 +127,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should add individual feed items", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const newItem = {
         title: "Third Test Item",
@@ -157,7 +157,7 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("aggregation", () => {
     it("should get all feed items", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const items = await client.getAllFeedItems();
       expect(Array.isArray(items)).toBe(true);
@@ -171,7 +171,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should get all categories", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const categories = await client.getAllCategories();
       expect(Array.isArray(categories)).toBe(true);
@@ -181,7 +181,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should get items by category", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const techItems = await client.getItemsByCategory({ category: "tech" });
       expect(Array.isArray(techItems)).toBe(true);
@@ -191,7 +191,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should get feeds by category", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const techFeeds = await client.getFeedsByCategory({ category: "technology" });
       expect(Array.isArray(techFeeds)).toBe(true);
@@ -201,14 +201,14 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("trending", () => {
     it("should track item views", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const result = await client.trackItemView({ itemId: "item-1" });
       expect(result.success).toBe(true);
     });
 
     it("should get trending items", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const trending = await client.getTrendingItems({ timeWindow: "24h" });
       expect(Array.isArray(trending)).toBe(true);
@@ -220,7 +220,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should get feed-specific trending", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const trending = await client.getFeedTrending({
         feedId: "test-integration-feed",
@@ -232,7 +232,7 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("RSS generation", () => {
     it("should generate RSS XML", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const rssXml = await client.getFeedRss({ feedId: "test-integration-feed" });
       expect(typeof rssXml).toBe("string");
@@ -242,7 +242,7 @@ describe("RSS Plugin Integration Tests", () => {
     });
 
     it("should generate Atom XML", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const atomXml = await client.getFeedAtom({ feedId: "test-integration-feed" });
       expect(typeof atomXml).toBe("string");
@@ -253,7 +253,7 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("stats", () => {
     it("should return statistics", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const stats = await client.getStats();
       expect(stats).toHaveProperty("totalFeeds");
@@ -267,7 +267,7 @@ describe("RSS Plugin Integration Tests", () => {
 
   describe("cleanup", () => {
     it("should delete a feed", async () => {
-      const { client } = await runtime.usePlugin("@curatedotfun/rss-plugin", TEST_CONFIG);
+      const { client } = await runtime.usePlugin("@curatedotfun/marketplace-plugin", TEST_CONFIG);
 
       const result = await client.deleteFeed({ feedId: "test-integration-feed" });
       expect(result.success).toBe(true);
