@@ -1,6 +1,5 @@
 import { createPlugin } from "every-plugin";
 import { Effect } from "every-plugin/effect";
-import { implement } from "every-plugin/orpc";
 import { z } from "every-plugin/zod";
 import { contract } from "./contract";
 import { RssService } from "./service";
@@ -32,28 +31,26 @@ export default createPlugin({
 
   shutdown: () => Effect.void,
 
-  createRouter: (context) => {
-    const os = implement(contract);
+  createRouter: (context, builder) => {
 
-    // Wire up all handlers using the service
-    return os.router({
-      healthCheck: os.healthCheck.handler(async () => {
+    return {
+      healthCheck: builder.healthCheck.handler(async () => {
         return await Effect.runPromise(context.service.healthCheck());
       }),
 
-      getFeeds: os.getFeeds.handler(async () => {
+      getFeeds: builder.getFeeds.handler(async () => {
         return await Effect.runPromise(context.service.getFeeds());
       }),
 
-      getFeed: os.getFeed.handler(async ({ input }) => {
+      getFeed: builder.getFeed.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeed(input.feedId));
       }),
 
-      getFeedItems: os.getFeedItems.handler(async ({ input }) => {
+      getFeedItems: builder.getFeedItems.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeedItems(input.feedId));
       }),
 
-      getFeedItem: os.getFeedItem.handler(async ({ input, errors }) => {
+      getFeedItem: builder.getFeedItem.handler(async ({ input, errors }) => {
         const [item, feed] = await Effect.runPromise(
           Effect.all([
             context.service.getFeedItem(input.feedId, input.itemId),
@@ -73,32 +70,32 @@ export default createPlugin({
         };
       }),
 
-      getAllFeedItems: os.getAllFeedItems.handler(async ({ input }) => {
+      getAllFeedItems: builder.getAllFeedItems.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getAllFeedItems(input || {}));
       }),
 
-      getAllCategories: os.getAllCategories.handler(async () => {
+      getAllCategories: builder.getAllCategories.handler(async () => {
         return await Effect.runPromise(context.service.getAllCategories());
       }),
 
-      getItemsByCategory: os.getItemsByCategory.handler(async ({ input }) => {
+      getItemsByCategory: builder.getItemsByCategory.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getItemsByCategory(input.category, input));
       }),
 
-      getFeedsByCategory: os.getFeedsByCategory.handler(async ({ input }) => {
+      getFeedsByCategory: builder.getFeedsByCategory.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeedsByCategory(input.category));
       }),
 
-      addFeed: os.addFeed.handler(async ({ input }) => {
+      addFeed: builder.addFeed.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.addFeed(input));
       }),
 
-      addFeedItem: os.addFeedItem.handler(async ({ input }) => {
+      addFeedItem: builder.addFeedItem.handler(async ({ input }) => {
         const itemWithId = { ...input.item, id: crypto.randomUUID() };
         return await Effect.runPromise(context.service.addFeedItem(input.feedId, itemWithId));
       }),
 
-      deleteFeed: os.deleteFeed.handler(async ({ input }) => {
+      deleteFeed: builder.deleteFeed.handler(async ({ input }) => {
         await Effect.runPromise(context.service.deleteFeed(input.feedId));
         return {
           success: true,
@@ -106,30 +103,30 @@ export default createPlugin({
         };
       }),
 
-      getTrendingItems: os.getTrendingItems.handler(async ({ input }) => {
+      getTrendingItems: builder.getTrendingItems.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getTrendingItems(input.timeWindow, input));
       }),
 
-      getFeedTrending: os.getFeedTrending.handler(async ({ input }) => {
+      getFeedTrending: builder.getFeedTrending.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeedTrending(input.feedId, input.timeWindow, input));
       }),
 
-      trackItemView: os.trackItemView.handler(async ({ input }) => {
+      trackItemView: builder.trackItemView.handler(async ({ input }) => {
         await Effect.runPromise(context.service.trackItemView(input.itemId));
         return { success: true };
       }),
 
-      getFeedRss: os.getFeedRss.handler(async ({ input }) => {
+      getFeedRss: builder.getFeedRss.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeedRss(input.feedId));
       }),
 
-      getFeedAtom: os.getFeedAtom.handler(async ({ input }) => {
+      getFeedAtom: builder.getFeedAtom.handler(async ({ input }) => {
         return await Effect.runPromise(context.service.getFeedAtom(input.feedId));
       }),
 
-      getStats: os.getStats.handler(async () => {
+      getStats: builder.getStats.handler(async () => {
         return await Effect.runPromise(context.service.getStats());
       }),
-    });
+    };
   },
 });

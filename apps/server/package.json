@@ -25,11 +25,12 @@
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.6",
     "effect": "^3.17.9",
-    "every-plugin": "^0.2.0",
+    "every-plugin": "link:every-plugin",
     "hono": "^4.9.2",
     "testcontainers": "^11.7.1"
   },
   "devDependencies": {
+    "@curatedotfun/rss-plugin": "workspace:*",
     "@orpc/client": "^1.9.3",
     "@types/bun": "^1.2.20",
     "drizzle-kit": "^0.31.4",

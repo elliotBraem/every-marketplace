@@ -1,6 +1,12 @@
 import { Effect, Config } from "effect";
 import { createPluginRuntime } from "every-plugin/runtime";
 import { pluginRegistry } from "../lib/registry";
+import type { PluginBinding } from "every-plugin";
+import type RssPlugin from "@curatedotfun/rss-plugin";
+
+type AppBindings = {
+  "@curatedotfun/rss-plugin": PluginBinding<typeof RssPlugin>;
+};
 
 export class PluginRuntimeService extends Effect.Service<PluginRuntimeService>()(
   "PluginRuntimeService",
@@ -13,7 +19,7 @@ export class PluginRuntimeService extends Effect.Service<PluginRuntimeService>()
 
       const runtime = yield* Effect.acquireRelease(
         Effect.sync(() =>
-          createPluginRuntime({
+          createPluginRuntime<AppBindings>({
             registry: pluginRegistry,
             secrets: { REDIS_URL: redisUrl }
           })

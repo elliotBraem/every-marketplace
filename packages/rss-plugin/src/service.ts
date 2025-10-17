@@ -1,13 +1,16 @@
-import { Effect, Data } from "every-plugin/effect";
+import { Effect } from "every-plugin/effect";
 import { Redis } from "ioredis";
+import { generateAtomXml, generateRssXml } from "./feed-generator";
 import type { Feed, FeedItem } from "./schemas/feed";
-import { generateRssXml, generateAtomXml } from "./feed-generator";
-import { Feed as FeedSchema, FeedItem as FeedItemSchema } from "./schemas/feed";
+import { FeedItem as FeedItemSchema, Feed as FeedSchema } from "./schemas/feed";
 
-export class RedisError extends Data.TaggedError("RedisError")<{
-  message: string;
-  cause?: unknown;
-}> { }
+export class RedisError {
+  readonly _tag = "RedisError" as const;
+  constructor(
+    readonly message: string,
+    readonly cause?: unknown
+  ) { }
+}
 
 /**
  * RSS Service class with embedded Redis operations.
@@ -41,10 +44,7 @@ export class RssService {
 
         return feeds;
       },
-      catch: (error) => new RedisError({
-        message: "Failed to get feeds",
-        cause: error
-      })
+      catch: (error) => new RedisError("Failed to get feeds", error)
     });
   }
 
@@ -54,10 +54,9 @@ export class RssService {
         const feedData = await this.client.get(`feed:${feedId}`);
         return feedData ? FeedSchema.parse(JSON.parse(feedData)) : null;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get feed ${feedId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to get feed ${feedId}`,
+        error
+      )
     });
   }
 
@@ -76,10 +75,9 @@ export class RssService {
 
         return items;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get items for feed ${feedId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to get items for feed ${feedId}`,
+        error
+      )
     });
   }
 
@@ -89,10 +87,9 @@ export class RssService {
         const itemData = await this.client.get(`item:${itemId}`);
         return itemData ? FeedItemSchema.parse(JSON.parse(itemData)) : null;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get item ${itemId} from feed ${feedId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to get item ${itemId} from feed ${feedId}`,
+        error
+      )
     });
   }
 
@@ -135,10 +132,10 @@ export class RssService {
         const end = start + (options?.limit || 50);
         return allItems.slice(start, end);
       },
-      catch: (error) => new RedisError({
-        message: "Failed to get all feed items",
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        "Failed to get all feed items",
+        error
+      )
     });
   }
 
@@ -168,10 +165,10 @@ export class RssService {
 
         return Array.from(categories).sort();
       },
-      catch: (error) => new RedisError({
-        message: "Failed to get all categories",
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        "Failed to get all categories",
+        error
+      )
     });
   }
 
@@ -213,10 +210,10 @@ export class RssService {
         const end = start + (options?.limit || 50);
         return matchingItems.slice(start, end);
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get items by category ${category}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        `Failed to get items by category ${category}`,
+        error
+      )
     });
   }
 
@@ -247,10 +244,10 @@ export class RssService {
 
         return matchingFeeds;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get feeds by category ${category}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        `Failed to get feeds by category ${category}`,
+        error
+      )
     });
   }
 
@@ -293,10 +290,10 @@ export class RssService {
 
         return feedId;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to add feed ${feed.options.id}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        `Failed to add feed ${feed.options.id}`,
+        error
+      )
     });
   }
 
@@ -314,10 +311,10 @@ export class RssService {
 
         return itemId;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to add item to feed ${feedId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        `Failed to add item to feed ${feedId}`,
+        error
+      )
     });
   }
 
@@ -341,10 +338,10 @@ export class RssService {
         // Remove from feeds directory
         await this.client.srem("feeds:directory", feedId);
       },
-      catch: (error) => new RedisError({
-        message: `Failed to delete feed ${feedId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(
+        `Failed to delete feed ${feedId}`,
+        error
+      )
     });
   }
 
@@ -377,10 +374,7 @@ export class RssService {
 
         return trendingItems;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get trending items for ${timeWindow}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to get trending items for ${timeWindow}`, error)
     });
   }
 
@@ -412,10 +406,7 @@ export class RssService {
 
         return trendingItems;
       },
-      catch: (error) => new RedisError({
-        message: `Failed to get trending items for feed ${feedId} in ${timeWindow}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to get trending items for feed ${feedId} in ${timeWindow}`, error)
     });
   }
 
@@ -442,10 +433,7 @@ export class RssService {
           }
         }
       },
-      catch: (error) => new RedisError({
-        message: `Failed to track view for item ${itemId}`,
-        cause: error
-      })
+      catch: (error) => new RedisError(`Failed to track view for item ${itemId}`, error)
     });
   }
 
@@ -484,10 +472,7 @@ export class RssService {
           totalCategories: categories.size
         };
       },
-      catch: (error) => new RedisError({
-        message: "Failed to get stats",
-        cause: error
-      })
+      catch: (error) => new RedisError("Failed to get stats", error)
     });
   }
 
