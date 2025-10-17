@@ -16,7 +16,7 @@ export class DatabaseService extends Effect.Service<DatabaseService>()(
         Config.orElse(() => Config.succeed("file:./database.db"))
       );
 
-      const authToken = yield* Config.option(Config.string("TURSO_AUTH_TOKEN"));
+      const authToken = yield* Config.option(Config.string("DATABASE_AUTH_TOKEN"));
 
       const client = yield* Effect.acquireRelease(
         Effect.sync(() => createClient({
