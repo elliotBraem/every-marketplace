@@ -1,41 +1,122 @@
-# every-rss-feed
+# every-marketplace
 
-This is a client app for reading Really Simple Syndicate feeds. 
+A unified marketplace platform with multi-vendor support, demonstrating the every-plugin architecture pattern.
 
 ## Architecture
 
-The app follows RSS standards strictly, with types in `apps/server/src/schemas/feed.ts` as the source of truth.
+This application showcases how to build modular, plugin-based systems where domain-specific functionality is encapsulated in self-contained plugins. The marketplace operations are provided entirely by the `@near-everything/marketplace-plugin`, which manages its own database, schemas, and business logic.
 
 ### Tech Stack
 - **Server**: Hono.js with tRPC for type-safe APIs, Better-Auth for authentication with NEAR Protocol accounts, Drizzle ORM on PostgreSQL
 - **Web**: React with TanStack Router for routing, TanStack Query for data fetching, tRPC client for server communication
-- **Database**: PostgreSQL with Docker Compose setup
+- **Database**: PostgreSQL (auth), LibSQL/Turso (marketplace plugin data)
+- **Plugin System**: every-plugin framework for modular, runtime-loadable functionality
+
+### Plugin Architecture
+
+The marketplace plugin (`packages/marketplace-plugin/`) demonstrates a complete plugin implementation:
+
+1. **Self-contained database** - Uses LibSQL/Turso with its own migrations and schema
+2. **oRPC contract** - Type-safe API definition with Zod schemas
+3. **Effect-based service layer** - Composable business logic with error handling
+4. **Runtime integration** - Loaded and initialized by the server at startup
+
+The server simply integrates the plugin through tRPC, exposing its procedures as endpoints. This pattern allows the marketplace logic to be:
+- Developed independently
+- Tested in isolation
+- Deployed as a module federation remote
+- Reused across different applications
 
 ### Key Files
-- `apps/server/src/schemas/feed.ts` - The RSS schema definitions that everything else builds on
-- `apps/server/src/routers/index.ts` - tRPC endpoints for feeds, feed items, and health checks
+
+**Marketplace Plugin:**
+- `packages/marketplace-plugin/src/contract.ts` - oRPC contract defining all marketplace procedures
+- `packages/marketplace-plugin/src/db/schema.ts` - Database schema for products, collections, sellers, categories
+- `packages/marketplace-plugin/src/service.ts` - Business logic implementation
+- `packages/marketplace-plugin/src/index.ts` - Plugin entry point with initialization and router
+- `packages/marketplace-plugin/LLM.txt` - Comprehensive guide for building every-plugins
+
+**Server Integration:**
+- `apps/server/src/routers/index.ts` - tRPC endpoints that expose plugin procedures
 - `apps/server/src/index.ts` - Server setup with Hono, tRPC, and auth middleware
+- `apps/server/src/lib/registry.ts` - Plugin registry configuration
+
+## Marketplace Features
+
+The plugin provides complete e-commerce functionality:
+
+### Products
+- CRUD operations (create, read, update, delete)
+- Search with filtering (price range, category, seller)
+- Pagination support
+- Image management
+- Category associations
+
+### Collections
+- Curated product groups
+- Seller-specific collections
+- Product positioning within collections
+- Batch operations
+
+### Sellers
+- Multi-vendor support
+- Seller profiles with metadata
+- Per-seller product/collection listings
+- Seller analytics
+
+### Categories
+- Hierarchical category structure
+- Parent-child relationships
+- Products by category
+- Category metadata
+
+### Analytics
+- Product view tracking
+- Trending products (time-based windows)
+- Stats aggregation (totals, counts)
 
 ## Setup
 
-1. `docker compose up -d` to get PostgreSQL running
-2. `bun db:migrate` to set up the database schema
+1. `docker compose up -d` to get PostgreSQL running (for auth)
+2. `bun db:migrate` to set up the auth database schema
 3. `bun dev` to start both web and server
+   - Server initializes the marketplace plugin on startup
+   - Plugin runs its own migrations for marketplace data
 
 ## Development
 
-- `bun dev` - Both apps
+- `bun dev` - Both apps (with hot reload)
 - `bun dev:web` - Just the React frontend
 - `bun dev:server` - Just the Hono backend
-- `bun db:studio` - Browse the database
-- `bun db:push` - Update database schema
+- `bun db:studio` - Browse the auth database
+- `bun db:push` - Update auth database schema
+
+### Working with the Marketplace Plugin
+
+The marketplace plugin can be developed independently:
+
+```bash
+cd packages/marketplace-plugin
+bun test              # Run tests
+bun run build         # Build for module federation
+```
+
+For detailed information about building plugins, see:
+- `packages/marketplace-plugin/README.md` - Marketplace-specific documentation
+- `packages/marketplace-plugin/LLM.txt` - Complete every-plugin development guide
 
 ## Links
-- [RSS 2.0 Specification](https://validator.w3.org/feed/docs/rss2.html)
-- [JSON Feed](https://jsonfeed.org/)
-- [Better Auth](https://better-auth.com/)
-- [NEAR Protocol](https://near.org/)
-- [TanStack Router](https://tanstack.com/router)
-- [tRPC](https://trpc.io/)
-- [Hono.js](https://hono.dev/)
-- [Drizzle ORM](https://orm.drizzle.team/)
+
+**Framework & Infrastructure:**
+- [every-plugin](https://github.com/near-everything/every-plugin) - Plugin framework
+- [Better Auth](https://better-auth.com/) - Authentication
+- [NEAR Protocol](https://near.org/) - Blockchain integration
+- [TanStack Router](https://tanstack.com/router) - React routing
+- [Hono.js](https://hono.dev/) - Web framework
+- [Drizzle ORM](https://orm.drizzle.team/) - Database ORM
+
+**Marketplace Plugin:**
+- [oRPC](https://orpc.io/) - Contract-first API definition
+- [Effect](https://effect.website/) - Functional error handling
+- [LibSQL/Turso](https://turso.tech/) - SQLite for the edge
+- [Zod](https://zod.dev/) - Schema validation
