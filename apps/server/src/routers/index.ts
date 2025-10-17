@@ -5,12 +5,16 @@ import { PluginRuntimeService } from "../services/plugin-runtime.service";
 export const createAppRouter = Effect.gen(function* () {
   const runtime = yield* PluginRuntimeService;
 
-  const { router: rssRouter } = yield* Effect.promise(() =>
-    runtime.usePlugin("@curatedotfun/rss-plugin", {
+  const { router: marketplaceRouter } = yield* Effect.promise(() =>
+    runtime.usePlugin("@near-everything/marketplace-plugin", {
       variables: {
         timeout: 10000
       },
-      secrets: { redisUrl: "{{REDIS_URL}}" }
+      secrets: {
+        databaseUrl: "{{DATABASE_URL}}",
+        databaseAuthToken: "{{DATABASE_AUTH_TOKEN}}",
+        redisUrl: "{{REDIS_URL}}"
+      }
     })
   );
 
@@ -18,31 +22,31 @@ export const createAppRouter = Effect.gen(function* () {
     healthCheck: publicProcedure.handler(() => {
       return "OK";
     }),
-    rss: {
-      // Public read operations
-      ...rssRouter,
-      // healthCheck: rssRouter.healthCheck,
-      // getFeeds: rssRouter.getFeeds,
-      // getFeed: rssRouter.getFeed,
-      // getFeedItems: rssRouter.getFeedItems,
-      // getFeedItem: rssRouter.getFeedItem,
-      // getAllFeedItems: rssRouter.getAllFeedItems,
-      // getAllCategories: rssRouter.getAllCategories,
-      // getItemsByCategory: rssRouter.getItemsByCategory,
-      // getFeedsByCategory: rssRouter.getFeedsByCategory,
-      // getTrendingItems: rssRouter.getTrendingItems,
-      // getFeedTrending: rssRouter.getFeedTrending,
-      // trackItemView: rssRouter.trackItemView,
-      // getFeedRss: rssRouter.getFeedRss,
-      // getFeedAtom: rssRouter.getFeedAtom,
-      // getStats: rssRouter.getStats,
+    marketplace: {
+      ...marketplaceRouter,
 
-      // Protected write operations
-      ...protectedProcedure.router({
-        addFeed: rssRouter.addFeed,
-        addFeedItem: rssRouter.addFeedItem,
-        deleteFeed: rssRouter.deleteFeed,
-      })
+      products: {
+        ...marketplaceRouter.products,
+        ...protectedProcedure.router({
+          createProduct: marketplaceRouter.products.createProduct,
+          updateProduct: marketplaceRouter.products.updateProduct,
+          deleteProduct: marketplaceRouter.products.deleteProduct,
+        })
+      },
+      collections: {
+        ...marketplaceRouter.collections,
+        ...protectedProcedure.router({
+          createCollection: marketplaceRouter.collections.createCollection,
+          addProductToCollection: marketplaceRouter.collections.addProductToCollection,
+          removeProductToCollection: marketplaceRouter.collections.removeProductToCollection,
+        })
+      },
+      sellers: {
+        ...marketplaceRouter.sellers,
+        ...protectedProcedure.router({
+          createSeller: marketplaceRouter.sellers.createSeller,
+        })
+      },
     }
   });
 });
